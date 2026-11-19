@@ -85,6 +85,7 @@ export function sanitizeSave(raw: unknown, now = Date.now()): Obj | null {
   money("earned");
   count("catches");
   count("selected");
+  count("tutorial"); // the new-player tutorial's step (client TUTORIAL.done = finished or skipped)
   bool("baitReady");
   bool("indexSeen");
   bool("freeClaimed");
