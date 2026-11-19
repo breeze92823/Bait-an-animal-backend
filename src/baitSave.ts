@@ -9,7 +9,7 @@ export const SAVE_LIMITS = {
   baitLevel: 10_000, // overall bait level index p
   baits: 12, // carried baits (client BAITS.carryMax = 6)
   animals: 64, // pen animals (client UPGRADES.slot.max = 12)
-  ids: 64, // owned pets, passes, index species
+  ids: 128, // keys of the id maps (index / claimed per species: the client has 63, passes, pets, upgrades)
   equipped: 8, // pets equipped at once (client PETS.equipMax)
   upgradeLevel: 10_000,
   count: 1e12, // catches, index counts
@@ -89,6 +89,7 @@ export function sanitizeSave(raw: unknown, now = Date.now()): Obj | null {
   bool("indexSeen");
   bool("freeClaimed");
   bool("packBought");
+  bool("nextShot"); // the bought Next Shot 100x Luck, waiting for the next throw
   time("offerEnds");
   time("packEnds");
   time("lastSeen");
@@ -99,6 +100,8 @@ export function sanitizeSave(raw: unknown, now = Date.now()): Obj | null {
   if (raw.up !== undefined) out.up = levels(raw.up, SAVE_LIMITS.upgradeLevel);
   if (raw.passes !== undefined) out.passes = flags(raw.passes);
   if (raw.potions !== undefined) out.potions = timers(raw.potions, now);
+  // species -> true once its Pet Index reward is claimed (so it can't be claimed twice).
+  if (raw.claimed !== undefined) out.claimed = flags(raw.claimed);
   if (Array.isArray(raw.auto))
     out.auto = raw.auto
       .slice(0, 3)

@@ -55,6 +55,22 @@ describe("sanitizeSave (Bait an Animal game state)", () => {
     assert.deepStrictEqual(out.best, { species: "fox", shiny: true });
     assert.deepStrictEqual(out.gym, { owned: true, level: 3, strength: 120.5 });
   });
+
+  it("keeps a full Pet Index (the client has 63 species)", () => {
+    const species = Array.from({ length: 63 }, (_, i) => `animal${i}`);
+    const index = Object.fromEntries(species.map((id) => [id, { n: 1, shiny: false }]));
+    const claimed = Object.fromEntries(species.map((id) => [id, true]));
+    const out = sanitizeSave({ index, claimed })!;
+    assert.strictEqual(Object.keys(out.index as object).length, 63);
+    assert.strictEqual(Object.keys(out.claimed as object).length, 63);
+  });
+
+  it("keeps every key the client's default state has (claimed Index rewards, the waiting Next Shot)", () => {
+    const out = sanitizeSave({ claimed: { fox: true, cow: false, "bad key": true, bear: 1 }, nextShot: true })!;
+    assert.deepStrictEqual(out.claimed, { fox: true, cow: false });
+    assert.strictEqual(out.nextShot, true);
+    assert.strictEqual(sanitizeSave({ nextShot: "yes" })!.nextShot, undefined);
+  });
 });
 
 describe("game save over the room", () => {
@@ -67,7 +83,7 @@ describe("game save over the room", () => {
     const fake = fakePlayers();
     __setPlayersForTest(fake);
     const room = await colyseus.createRoom<WorldState>("world", {});
-    const c = await colyseus.connectTo(room, { userId: "b1", username: "Ann" });
+    const c = await colyseus.connectTo(room, { token: "t-b1", username: "Ann" });
     c.onMessage("noProgress", () => {});
     fake.release();
     await sleep(150);
@@ -83,7 +99,7 @@ describe("game save over the room", () => {
     const later = fakePlayers([doc]);
     __setPlayersForTest(later);
     const room2 = await colyseus.createRoom<WorldState>("world", {});
-    const again = await colyseus.connectTo(room2, { userId: "b1" });
+    const again = await colyseus.connectTo(room2, { token: "t-b1" });
     let got: any = null;
     again.onMessage("progress", (m: any) => (got = m));
     later.release();
