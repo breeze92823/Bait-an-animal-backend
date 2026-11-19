@@ -71,6 +71,13 @@ describe("sanitizeSave (Bait an Animal game state)", () => {
     assert.strictEqual(out.nextShot, true);
     assert.strictEqual(sanitizeSave({ nextShot: "yes" })!.nextShot, undefined);
   });
+
+  it("keeps the tutorial step (so a finished or skipped tutorial never shows again)", () => {
+    assert.strictEqual(sanitizeSave({ tutorial: 100 })!.tutorial, 100);
+    assert.strictEqual(sanitizeSave({ tutorial: 2.7 })!.tutorial, 2);
+    assert.strictEqual(sanitizeSave({ tutorial: -5 })!.tutorial, 0);
+    assert.strictEqual(sanitizeSave({ tutorial: "done" })!.tutorial, undefined);
+  });
 });
 
 describe("game save over the room", () => {
