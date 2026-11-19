@@ -11,7 +11,7 @@ env:
   REGISTRY: ghcr.io
   # Repo variable, set under Settings -> Secrets and variables -> Actions -> Variables.
   # Must match the lowercase game ID created on the Bloxity "My Games" dashboard
-  # (the client's GAME_SLUG in src/config.js: bowling-roll).
+  # (the client's GAME_SLUG in src/config.js: bait-an-animal).
   GAME_ID: ${{ vars.LEGION_GAME_ID || secrets.LEGION_GAME_ID }}
 
 jobs:
@@ -81,8 +81,9 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.GAME_ID }}-server:${{ steps.channel.outputs.channel }}-${{ github.sha }}
 
-      # roomSize = players per room (WorldRoom's maxClients, ROOM_MAX_CLIENTS in src/constants.ts);
-      # the Bloxity matchmaker picks the pod capacity itself, so no seatCap is sent.
+      # roomSize = players per room (WorldRoom's maxClients = ROOM_MAX_CLIENTS in src/constants.ts, one
+      # player per plot). No seatCap: the SDK docs (docs.bloxity.io, Multiplayer matchmaker) say Boxity
+      # sizes pods itself from real CPU per player, so the deploy sends roomSize only.
       - name: Deploy to Legion
         run: |
           ROOM_SIZE=$(grep -oP 'ROOM_MAX_CLIENTS\s*=\s*\K\d+' src/constants.ts)
